@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: Data products schemas
+  version: 0.1.0
+  description: Stewarded data product catalogue, quality status, and silo systems.
+paths: {}
+components:
+  schemas:
+    DataProductId:
+      type: string
+      pattern: '^dpr_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed stewarded data-product identifier.
+
+    SiloSystemId:
+      type: string
+      pattern: '^slo_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed silo system identifier.
+
+    QualityStatus:
+      type: string
+      enum: [green, amber, red]
+
+    DataProduct:
+      type: object
+      required:
+        - dataProductId
+        - name
+        - stewardId
+        - qualityStatus
+        - siloSystemCount
+        - createdAt
+        - updatedAt
+      properties:
+        dataProductId:
+          $ref: '#/components/schemas/DataProductId'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        stewardId:
+          $ref: ./common/primitives.yaml#/components/schemas/UserId
+        qualityStatus:
+          $ref: '#/components/schemas/QualityStatus'
+        siloSystemCount:
+          type: integer
+          minimum: 0
+        piiClassification:
+          type: string
+          description: PII / sensitivity classification label.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DataProductCreateRequest:
+      type: object
+      required:
+        - name
+        - stewardId
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        stewardId:
+          $ref: ./common/primitives.yaml#/components/schemas/UserId
+        description:
+          type: string
+        piiClassification:
+          type: string
+
+    DataProductStewardUpdateRequest:
+      type: object
+      required:
+        - stewardId
+      properties:
+        stewardId:
+          $ref: ./common/primitives.yaml#/components/schemas/UserId
+
+    SiloSystem:
+      type: object
+      required:
+        - siloSystemId
+        - name
+      properties:
+        siloSystemId:
+          $ref: '#/components/schemas/SiloSystemId'
+        name:
+          type: string
+        lob:
+          type: string
+          description: Line-of-business owner.
+        databaseCount:
+          type: integer
+          minimum: 0
+        removalPlanStatus:
+          type: string
+          enum: [planned, inProgress, removed, blocked]
+
+    SiloSystemListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiloSystem'
+
+    DataProductListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataProduct'
+        nextCursor:
+          type: string
+
+    DataProductResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/DataProduct'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    DataProductListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/DataProductListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    SiloSystemListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/SiloSystemListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

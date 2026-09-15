@@ -1,0 +1,186 @@
+openapi: 3.1.0
+info:
+  title: Use Cases API
+  version: 0.1.0
+  description: |
+    AI use-case register with quarter TTV gates, stewarded data-product links,
+    and control-tower programme pulse metrics.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: ucs
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: UseCases
+    description: AI use cases and TTV gates
+paths:
+  /v1/use-cases:
+    get:
+      operationId: listUseCases
+      tags: [UseCases]
+      summary: List AI use cases
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Use cases
+          content:
+            application/json:
+              schema:
+                $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createUseCase
+      tags: [UseCases]
+      summary: Register an approved AI use case
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseCreateRequest
+      responses:
+        '201':
+          description: Use case created
+          content:
+            application/json:
+              schema:
+                $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/use-cases/programme-pulse:
+    get:
+      operationId: getProgrammePulse
+      tags: [UseCases]
+      summary: Control-tower programme pulse metrics
+      description: |
+        Aggregated wrangling tax, TTV hit rate, missed gates, overdue escalations,
+        and pipeline SLA breaches for the CDO control tower.
+      responses:
+        '200':
+          description: Programme pulse
+          content:
+            application/json:
+              schema:
+                $ref: ./use-cases.schemas.yaml#/components/schemas/ProgrammePulseResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/use-cases/{useCaseId}:
+    get:
+      operationId: getUseCase
+      tags: [UseCases]
+      summary: Get an AI use case
+      parameters:
+        - name: useCaseId
+          in: path
+          required: true
+          schema:
+            $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseId
+      responses:
+        '200':
+          description: Use case
+          content:
+            application/json:
+              schema:
+                $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/use-cases/{useCaseId}/ttv-gates:
+    put:
+      operationId: setTTVGate
+      tags: [UseCases]
+      summary: Declare or update the quarter TTV gate
+      parameters:
+        - name: useCaseId
+          in: path
+          required: true
+          schema:
+            $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./use-cases.schemas.yaml#/components/schemas/TTVGateUpdateRequest
+      responses:
+        '200':
+          description: TTV gate updated
+          content:
+            application/json:
+              schema:
+                $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/use-cases/{useCaseId}/data-products:
+    post:
+      operationId: linkDataProduct
+      tags: [UseCases]
+      summary: Link a stewarded data product to a use case
+      parameters:
+        - name: useCaseId
+          in: path
+          required: true
+          schema:
+            $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./use-cases.schemas.yaml#/components/schemas/LinkDataProductRequest
+      responses:
+        '200':
+          description: Data product linked
+          content:
+            application/json:
+              schema:
+                $ref: ./use-cases.schemas.yaml#/components/schemas/UseCaseResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

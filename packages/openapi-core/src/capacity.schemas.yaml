@@ -1,0 +1,178 @@
+openapi: 3.1.0
+info:
+  title: Capacity schemas
+  version: 0.1.0
+  description: Capacity planning across concurrent AI projects and source conflicts.
+paths: {}
+components:
+  schemas:
+    CapacityPlanId:
+      type: string
+      pattern: '^cap_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed capacity plan identifier.
+
+    UseCaseId:
+      type: string
+      pattern: '^ucs_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed AI use-case identifier.
+
+    DataProductId:
+      type: string
+      pattern: '^dpr_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed stewarded data-product identifier.
+
+    CapacityPlanStatus:
+      type: string
+      enum: [draft, active, superseded]
+
+    CapacityPlan:
+      type: object
+      required:
+        - capacityPlanId
+        - name
+        - useCaseIds
+        - status
+        - periodStart
+        - periodEnd
+        - createdAt
+        - updatedAt
+      properties:
+        capacityPlanId:
+          $ref: '#/components/schemas/CapacityPlanId'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        useCaseIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/UseCaseId'
+        sourceDataProductIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataProductId'
+          description: Uncleansed or shared sources reserved in this plan.
+        status:
+          $ref: '#/components/schemas/CapacityPlanStatus'
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CapacityPlanCreateRequest:
+      type: object
+      required:
+        - name
+        - useCaseIds
+        - periodStart
+        - periodEnd
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        useCaseIds:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/UseCaseId'
+        sourceDataProductIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataProductId'
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    CapacityConflict:
+      type: object
+      required:
+        - dataProductId
+        - conflictingUseCaseIds
+        - detectedAt
+      properties:
+        dataProductId:
+          $ref: '#/components/schemas/DataProductId'
+        conflictingUseCaseIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/UseCaseId'
+        conflictingPlanIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/CapacityPlanId'
+        severity:
+          type: string
+          enum: [warning, blocking]
+        detectedAt:
+          type: string
+          format: date-time
+        remediationHint:
+          type: string
+
+    CapacityPlanListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CapacityPlan'
+        nextCursor:
+          type: string
+
+    CapacityConflictListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CapacityConflict'
+
+    CapacityPlanResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CapacityPlan'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    CapacityPlanListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CapacityPlanListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    CapacityConflictListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CapacityConflictListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

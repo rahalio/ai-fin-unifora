@@ -1,0 +1,93 @@
+openapi: 3.1.0
+info:
+  title: Audits schemas
+  version: 0.1.0
+  description: Regulatory audit export jobs and download URIs.
+paths: {}
+components:
+  schemas:
+    AuditExportId:
+      type: string
+      pattern: '^aud_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed audit export job identifier.
+
+    AuditExportStatus:
+      type: string
+      enum: [pending, ready, failed]
+
+    AuditExport:
+      type: object
+      required:
+        - auditExportId
+        - status
+        - periodFrom
+        - periodTo
+        - createdAt
+      properties:
+        auditExportId:
+          $ref: '#/components/schemas/AuditExportId'
+        status:
+          $ref: '#/components/schemas/AuditExportStatus'
+        periodFrom:
+          type: string
+          format: date-time
+        periodTo:
+          type: string
+          format: date-time
+        downloadUri:
+          type: string
+          format: uri
+          description: Pre-signed download URL when status is ready.
+        scope:
+          type: object
+          description: Optional scope filters applied to the export.
+          properties:
+            includeShares:
+              type: boolean
+            includeLineage:
+              type: boolean
+            includePipelines:
+              type: boolean
+        failureReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+
+    AuditExportCreateRequest:
+      type: object
+      required:
+        - periodFrom
+        - periodTo
+      properties:
+        periodFrom:
+          type: string
+          format: date-time
+        periodTo:
+          type: string
+          format: date-time
+        scope:
+          type: object
+          properties:
+            includeShares:
+              type: boolean
+              default: true
+            includeLineage:
+              type: boolean
+              default: true
+            includePipelines:
+              type: boolean
+              default: true
+
+    AuditExportResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/AuditExport'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

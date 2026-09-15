@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: Readiness schemas
+  version: 0.1.0
+  description: Finextra checklist readiness scoring with pillar evidence.
+paths: {}
+components:
+  schemas:
+    UseCaseId:
+      type: string
+      pattern: '^ucs_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed AI use-case identifier.
+
+    ReadinessPillarEvidence:
+      type: object
+      description: Evidence for a single Finextra checklist pillar.
+      properties:
+        score:
+          type: number
+          minimum: 0
+          maximum: 100
+        satisfied:
+          type: boolean
+        notes:
+          type: string
+        evidenceUris:
+          type: array
+          items:
+            type: string
+            format: uri
+
+    ReadinessChecklistEvidence:
+      type: object
+      required:
+        - siloRemoval
+        - lineage
+        - pipelineOps
+      properties:
+        siloRemoval:
+          $ref: '#/components/schemas/ReadinessPillarEvidence'
+        lineage:
+          $ref: '#/components/schemas/ReadinessPillarEvidence'
+        pipelineOps:
+          $ref: '#/components/schemas/ReadinessPillarEvidence'
+
+    ReadinessScore:
+      type: object
+      required:
+        - useCaseId
+        - score
+        - checklist
+        - computedAt
+      properties:
+        useCaseId:
+          $ref: '#/components/schemas/UseCaseId'
+        score:
+          type: number
+          minimum: 0
+          maximum: 100
+        siloRemovalProgress:
+          type: number
+          minimum: 0
+          maximum: 1
+        lineageCoverage:
+          type: number
+          minimum: 0
+          maximum: 1
+        pipelineOpsReady:
+          type: boolean
+        checklist:
+          $ref: '#/components/schemas/ReadinessChecklistEvidence'
+        computedAt:
+          type: string
+          format: date-time
+
+    ReadinessScoreResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/ReadinessScore'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

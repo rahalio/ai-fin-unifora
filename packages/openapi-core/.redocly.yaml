@@ -1,0 +1,40 @@
+apis:
+  identity:
+    root: src/identity.yaml
+  use-cases:
+    root: src/use-cases.yaml
+  data-products:
+    root: src/data-products.yaml
+  shares:
+    root: src/shares.yaml
+  readiness:
+    root: src/readiness.yaml
+  pipelines:
+    root: src/pipelines.yaml
+  escalations:
+    root: src/escalations.yaml
+  lineage:
+    root: src/lineage.yaml
+  audits:
+    root: src/audits.yaml
+  capacity:
+    root: src/capacity.yaml
+  security-attestations:
+    root: src/security-attestations.yaml
+
+extends:
+  - recommended
+
+rules:
+  no-unused-components: off
+  operation-4xx-response: warn
+  info-license: off
+  info-license-url: off
+  tag-description: off
+  operation-operationId: error
+  no-invalid-media-type-examples: off
+
+theme:
+  openapi:
+    generateCodeSamples:
+      languages: []

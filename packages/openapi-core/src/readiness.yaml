@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info:
+  title: Readiness API
+  version: 0.1.0
+  description: |
+    Finextra checklist readiness scoring — silo removal, lineage coverage,
+    and pipeline ops pillars with evidence attachments.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: rdy
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: Readiness
+    description: Finextra checklist readiness scores
+paths:
+  /v1/readiness/{useCaseId}:
+    get:
+      operationId: getReadinessScore
+      tags: [Readiness]
+      summary: Get readiness score for a use case
+      parameters:
+        - name: useCaseId
+          in: path
+          required: true
+          schema:
+            $ref: ./readiness.schemas.yaml#/components/schemas/UseCaseId
+      responses:
+        '200':
+          description: Readiness score
+          content:
+            application/json:
+              schema:
+                $ref: ./readiness.schemas.yaml#/components/schemas/ReadinessScoreResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: recomputeReadiness
+      tags: [Readiness]
+      summary: Recompute readiness score from current evidence
+      parameters:
+        - name: useCaseId
+          in: path
+          required: true
+          schema:
+            $ref: ./readiness.schemas.yaml#/components/schemas/UseCaseId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Readiness recomputed
+          content:
+            application/json:
+              schema:
+                $ref: ./readiness.schemas.yaml#/components/schemas/ReadinessScoreResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

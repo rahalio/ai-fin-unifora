@@ -1,0 +1,145 @@
+openapi: 3.1.0
+info:
+  title: Shares schemas
+  version: 0.1.0
+  description: Internal and third-party governed share requests and decisions.
+paths: {}
+components:
+  schemas:
+    ShareRequestId:
+      type: string
+      pattern: '^shr_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed share-request identifier.
+
+    DataProductId:
+      type: string
+      pattern: '^dpr_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed stewarded data-product identifier.
+
+    UseCaseId:
+      type: string
+      pattern: '^ucs_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed AI use-case identifier.
+
+    ShareScope:
+      type: string
+      enum: [internal, thirdParty]
+
+    ShareRequestStatus:
+      type: string
+      enum: [pending, approved, denied, escalated]
+
+    ShareDecisionAction:
+      type: string
+      enum: [approve, deny]
+
+    ShareRequest:
+      type: object
+      required:
+        - shareRequestId
+        - dataProductId
+        - shareScope
+        - purpose
+        - status
+        - consentMinimisationSatisfied
+        - createdAt
+        - updatedAt
+      properties:
+        shareRequestId:
+          $ref: '#/components/schemas/ShareRequestId'
+        dataProductId:
+          $ref: '#/components/schemas/DataProductId'
+        useCaseId:
+          $ref: '#/components/schemas/UseCaseId'
+        shareScope:
+          $ref: '#/components/schemas/ShareScope'
+        purpose:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/ShareRequestStatus'
+        decisionRationale:
+          type: string
+        consentMinimisationSatisfied:
+          type: boolean
+          description: |
+            For thirdParty shares — true when consent and minimisation rules are met.
+            Always true for internal shares.
+        escalateAfterAt:
+          type: string
+          format: date-time
+          description: Auto-escalation deadline if no steward decision.
+        decidedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ShareRequestCreateRequest:
+      type: object
+      required:
+        - dataProductId
+        - shareScope
+        - purpose
+      properties:
+        dataProductId:
+          $ref: '#/components/schemas/DataProductId'
+        useCaseId:
+          $ref: '#/components/schemas/UseCaseId'
+        shareScope:
+          $ref: '#/components/schemas/ShareScope'
+        purpose:
+          type: string
+          minLength: 1
+        consentMinimisationSatisfied:
+          type: boolean
+          description: Required and must be true for thirdParty shares.
+        escalateAfterAt:
+          type: string
+          format: date-time
+
+    ShareDecisionRequest:
+      type: object
+      required:
+        - decision
+      properties:
+        decision:
+          $ref: '#/components/schemas/ShareDecisionAction'
+        rationale:
+          type: string
+
+    ShareRequestListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShareRequest'
+        nextCursor:
+          type: string
+
+    ShareRequestResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/ShareRequest'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    ShareRequestListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/ShareRequestListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

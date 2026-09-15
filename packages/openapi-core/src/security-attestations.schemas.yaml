@@ -1,0 +1,80 @@
+openapi: 3.1.0
+info:
+  title: Security attestations schemas
+  version: 0.1.0
+  description: Platform security and cloud data-protection attestation.
+paths: {}
+components:
+  schemas:
+    ControlChecklistItem:
+      type: object
+      required:
+        - controlId
+        - label
+        - satisfied
+      properties:
+        controlId:
+          type: string
+        label:
+          type: string
+        satisfied:
+          type: boolean
+        evidenceUri:
+          type: string
+          format: uri
+        notes:
+          type: string
+
+    PlatformAttestation:
+      type: object
+      required:
+        - cloudOwnershipAcknowledged
+        - controlsChecklist
+        - attestedAt
+        - attestedBy
+      properties:
+        cloudOwnershipAcknowledged:
+          type: boolean
+          description: |
+            Institution acknowledges it retains data-protection ownership
+            when using cloud analytics platforms (BR-8).
+        controlsChecklist:
+          type: array
+          items:
+            $ref: '#/components/schemas/ControlChecklistItem'
+        attestedAt:
+          type: string
+          format: date-time
+        attestedBy:
+          $ref: ./common/primitives.yaml#/components/schemas/UserId
+        attestationVersion:
+          type: integer
+          minimum: 1
+          description: Monotonic version for attestation history.
+        expiresAt:
+          type: string
+          format: date-time
+
+    PlatformAttestationUpsertRequest:
+      type: object
+      required:
+        - cloudOwnershipAcknowledged
+        - controlsChecklist
+      properties:
+        cloudOwnershipAcknowledged:
+          type: boolean
+        controlsChecklist:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ControlChecklistItem'
+
+    PlatformAttestationResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/PlatformAttestation'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

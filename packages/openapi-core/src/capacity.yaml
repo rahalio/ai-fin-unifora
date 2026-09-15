@@ -1,0 +1,91 @@
+openapi: 3.1.0
+info:
+  title: Capacity API
+  version: 0.1.0
+  description: |
+    Capacity planning so concurrent AI projects do not thrash the same
+    uncleansed sources without a remediation plan.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: cap
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: Capacity
+    description: Capacity plans and source conflicts
+paths:
+  /v1/capacity/plans:
+    get:
+      operationId: listCapacityPlans
+      tags: [Capacity]
+      summary: List capacity plans
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Capacity plans
+          content:
+            application/json:
+              schema:
+                $ref: ./capacity.schemas.yaml#/components/schemas/CapacityPlanListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createCapacityPlan
+      tags: [Capacity]
+      summary: Create a capacity plan
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./capacity.schemas.yaml#/components/schemas/CapacityPlanCreateRequest
+      responses:
+        '201':
+          description: Capacity plan created
+          content:
+            application/json:
+              schema:
+                $ref: ./capacity.schemas.yaml#/components/schemas/CapacityPlanResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/capacity/conflicts:
+    get:
+      operationId: listCapacityConflicts
+      tags: [Capacity]
+      summary: List detected source capacity conflicts
+      description: |
+        Highlights use cases contending for the same uncleansed sources
+        without an active capacity plan.
+      responses:
+        '200':
+          description: Capacity conflicts
+          content:
+            application/json:
+              schema:
+                $ref: ./capacity.schemas.yaml#/components/schemas/CapacityConflictListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

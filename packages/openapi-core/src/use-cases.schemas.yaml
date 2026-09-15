@@ -1,0 +1,182 @@
+openapi: 3.1.0
+info:
+  title: Use cases schemas
+  version: 0.1.0
+  description: AI use-case register, TTV gates, data-product links, and programme pulse.
+paths: {}
+components:
+  schemas:
+    UseCaseId:
+      type: string
+      pattern: '^ucs_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed AI use-case identifier.
+
+    DataProductId:
+      type: string
+      pattern: '^dpr_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed stewarded data-product identifier.
+
+    UseCaseStatus:
+      type: string
+      enum: [proposed, ready, building, live, stalled]
+
+    UseCase:
+      type: object
+      required:
+        - useCaseId
+        - name
+        - status
+        - linkedDataProductIds
+        - createdAt
+        - updatedAt
+      properties:
+        useCaseId:
+          $ref: '#/components/schemas/UseCaseId'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        domain:
+          type: string
+          description: Business domain (e.g. AML, virtual agent, post-trade).
+        sponsor:
+          type: string
+          description: Executive or programme sponsor.
+        status:
+          $ref: '#/components/schemas/UseCaseStatus'
+        linkedDataProductIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataProductId'
+        wranglingTimeShare:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Fraction of project time spent on data wrangling (0–1).
+        ttvDueAt:
+          type: string
+          format: date-time
+          description: Quarter-scale time-to-value gate deadline.
+        ttvHit:
+          type: boolean
+          description: Whether the use case met its declared TTV gate.
+        targetWranglingShare:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Target wrangling-time share for the TTV gate.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UseCaseCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        domain:
+          type: string
+        sponsor:
+          type: string
+
+    TTVGateUpdateRequest:
+      type: object
+      required:
+        - ttvDueAt
+      properties:
+        ttvDueAt:
+          type: string
+          format: date-time
+        targetWranglingShare:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    LinkDataProductRequest:
+      type: object
+      required:
+        - dataProductId
+      properties:
+        dataProductId:
+          $ref: '#/components/schemas/DataProductId'
+
+    ProgrammePulse:
+      type: object
+      required:
+        - wranglingTaxMedian
+        - ttvHitRate
+        - missedTtvCount
+        - escalationOverdueCount
+        - pipelineBreachCount
+      properties:
+        wranglingTaxMedian:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Median wrangling-time share across active use cases.
+        ttvHitRate:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Fraction of use cases that hit their TTV gate.
+        missedTtvCount:
+          type: integer
+          minimum: 0
+        escalationOverdueCount:
+          type: integer
+          minimum: 0
+        pipelineBreachCount:
+          type: integer
+          minimum: 0
+        generatedAt:
+          type: string
+          format: date-time
+
+    UseCaseListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UseCase'
+        nextCursor:
+          type: string
+
+    UseCaseResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/UseCase'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    UseCaseListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/UseCaseListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    ProgrammePulseResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/ProgrammePulse'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

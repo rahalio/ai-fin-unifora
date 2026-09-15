@@ -1,0 +1,110 @@
+openapi: 3.1.0
+info:
+  title: Escalations API
+  version: 0.1.0
+  description: |
+    Named executive forum for silo disputes — open cases with deadlines
+    and recorded rulings.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: esc
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: Escalations
+    description: Silo dispute escalations
+paths:
+  /v1/escalations:
+    get:
+      operationId: listEscalations
+      tags: [Escalations]
+      summary: List escalation cases
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: ./escalations.schemas.yaml#/components/schemas/EscalationStatus
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Escalation cases
+          content:
+            application/json:
+              schema:
+                $ref: ./escalations.schemas.yaml#/components/schemas/EscalationCaseListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: openEscalation
+      tags: [Escalations]
+      summary: Open an escalation case
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./escalations.schemas.yaml#/components/schemas/EscalationCaseCreateRequest
+      responses:
+        '201':
+          description: Escalation opened
+          content:
+            application/json:
+              schema:
+                $ref: ./escalations.schemas.yaml#/components/schemas/EscalationCaseResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/escalations/{escalationId}/resolve:
+    post:
+      operationId: resolveEscalation
+      tags: [Escalations]
+      summary: Resolve an escalation with a ruling
+      parameters:
+        - name: escalationId
+          in: path
+          required: true
+          schema:
+            $ref: ./escalations.schemas.yaml#/components/schemas/EscalationId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./escalations.schemas.yaml#/components/schemas/EscalationResolveRequest
+      responses:
+        '200':
+          description: Escalation resolved
+          content:
+            application/json:
+              schema:
+                $ref: ./escalations.schemas.yaml#/components/schemas/EscalationCaseResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

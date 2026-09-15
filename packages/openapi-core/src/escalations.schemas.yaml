@@ -1,0 +1,112 @@
+openapi: 3.1.0
+info:
+  title: Escalations schemas
+  version: 0.1.0
+  description: Executive silo dispute escalation cases with deadlines.
+paths: {}
+components:
+  schemas:
+    EscalationId:
+      type: string
+      pattern: '^esc_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed escalation case identifier.
+
+    ShareRequestId:
+      type: string
+      pattern: '^shr_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed share-request identifier.
+
+    EscalationStatus:
+      type: string
+      enum: [open, resolved]
+
+    EscalationCase:
+      type: object
+      required:
+        - escalationId
+        - shareRequestId
+        - status
+        - deadlineAt
+        - createdAt
+        - updatedAt
+      properties:
+        escalationId:
+          $ref: '#/components/schemas/EscalationId'
+        shareRequestId:
+          $ref: '#/components/schemas/ShareRequestId'
+        status:
+          $ref: '#/components/schemas/EscalationStatus'
+        deadlineAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+        resolution:
+          type: string
+        resolvedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EscalationCaseCreateRequest:
+      type: object
+      required:
+        - shareRequestId
+        - deadlineAt
+      properties:
+        shareRequestId:
+          $ref: '#/components/schemas/ShareRequestId'
+        deadlineAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+
+    EscalationResolveRequest:
+      type: object
+      required:
+        - resolution
+      properties:
+        resolution:
+          type: string
+          minLength: 1
+        grantShare:
+          type: boolean
+          description: When true, ruling grants the underlying share request.
+
+    EscalationCaseListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EscalationCase'
+        nextCursor:
+          type: string
+
+    EscalationCaseResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/EscalationCase'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    EscalationCaseListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/EscalationCaseListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

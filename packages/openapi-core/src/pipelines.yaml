@@ -1,0 +1,138 @@
+openapi: 3.1.0
+info:
+  title: Pipelines API
+  version: 0.1.0
+  description: |
+    Model pipeline ops registry — register pipelines, track SLA events,
+    and monitor production breach status.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: pip
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: Pipelines
+    description: Model pipeline ops registry
+paths:
+  /v1/pipelines:
+    get:
+      operationId: listPipelines
+      tags: [Pipelines]
+      summary: List registered pipelines
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Pipelines
+          content:
+            application/json:
+              schema:
+                $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: registerPipeline
+      tags: [Pipelines]
+      summary: Register a model pipeline
+      description: Accepts Bearer JWT (operators) or API key (ML platform connectors).
+      security:
+        - bearerAuth: []
+        - apiKey: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineCreateRequest
+      responses:
+        '201':
+          description: Pipeline registered
+          content:
+            application/json:
+              schema:
+                $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/pipelines/{pipelineId}:
+    get:
+      operationId: getPipeline
+      tags: [Pipelines]
+      summary: Get a registered pipeline
+      parameters:
+        - name: pipelineId
+          in: path
+          required: true
+          schema:
+            $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineId
+      responses:
+        '200':
+          description: Pipeline
+          content:
+            application/json:
+              schema:
+                $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/pipelines/{pipelineId}/sla-events:
+    post:
+      operationId: recordPipelineSLAEvent
+      tags: [Pipelines]
+      summary: Record an SLA event from a pipeline connector
+      security:
+        - apiKey: []
+      parameters:
+        - name: pipelineId
+          in: path
+          required: true
+          schema:
+            $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineSLAEventRequest
+      responses:
+        '202':
+          description: SLA event accepted
+          content:
+            application/json:
+              schema:
+                $ref: ./pipelines.schemas.yaml#/components/schemas/PipelineResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey

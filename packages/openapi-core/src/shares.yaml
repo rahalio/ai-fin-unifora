@@ -1,0 +1,111 @@
+openapi: 3.1.0
+info:
+  title: Shares API
+  version: 0.1.0
+  description: |
+    Governed internal federation and third-party share workflows with
+    purpose limits, consent minimisation, and auto-escalation deadlines.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: shr
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: Shares
+    description: Internal and third-party share requests
+paths:
+  /v1/shares:
+    get:
+      operationId: listShareRequests
+      tags: [Shares]
+      summary: List share requests
+      parameters:
+        - name: shareScope
+          in: query
+          required: false
+          description: Filter by share scope (internal or thirdParty).
+          schema:
+            $ref: ./shares.schemas.yaml#/components/schemas/ShareScope
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Share requests
+          content:
+            application/json:
+              schema:
+                $ref: ./shares.schemas.yaml#/components/schemas/ShareRequestListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createShareRequest
+      tags: [Shares]
+      summary: Submit a governed share request
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./shares.schemas.yaml#/components/schemas/ShareRequestCreateRequest
+      responses:
+        '201':
+          description: Share request created
+          content:
+            application/json:
+              schema:
+                $ref: ./shares.schemas.yaml#/components/schemas/ShareRequestResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/shares/{shareRequestId}/decide:
+    post:
+      operationId: decideShareRequest
+      tags: [Shares]
+      summary: Approve or deny a share request
+      parameters:
+        - name: shareRequestId
+          in: path
+          required: true
+          schema:
+            $ref: ./shares.schemas.yaml#/components/schemas/ShareRequestId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./shares.schemas.yaml#/components/schemas/ShareDecisionRequest
+      responses:
+        '200':
+          description: Share request decided
+          content:
+            application/json:
+              schema:
+                $ref: ./shares.schemas.yaml#/components/schemas/ShareRequestResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

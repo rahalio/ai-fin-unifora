@@ -1,0 +1,152 @@
+openapi: 3.1.0
+info:
+  title: Data Products API
+  version: 0.1.0
+  description: |
+    Steward-owned data product catalogue with quality status and silo source mapping.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: dpr
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: DataProducts
+    description: Stewarded data products
+paths:
+  /v1/data-products:
+    get:
+      operationId: listDataProducts
+      tags: [DataProducts]
+      summary: List stewarded data products
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Data products
+          content:
+            application/json:
+              schema:
+                $ref: ./data-products.schemas.yaml#/components/schemas/DataProductListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createDataProduct
+      tags: [DataProducts]
+      summary: Publish a stewarded data product
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./data-products.schemas.yaml#/components/schemas/DataProductCreateRequest
+      responses:
+        '201':
+          description: Data product created
+          content:
+            application/json:
+              schema:
+                $ref: ./data-products.schemas.yaml#/components/schemas/DataProductResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/data-products/{dataProductId}:
+    get:
+      operationId: getDataProduct
+      tags: [DataProducts]
+      summary: Get a stewarded data product
+      parameters:
+        - name: dataProductId
+          in: path
+          required: true
+          schema:
+            $ref: ./data-products.schemas.yaml#/components/schemas/DataProductId
+      responses:
+        '200':
+          description: Data product
+          content:
+            application/json:
+              schema:
+                $ref: ./data-products.schemas.yaml#/components/schemas/DataProductResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: updateDataProductSteward
+      tags: [DataProducts]
+      summary: Reassign the data steward
+      parameters:
+        - name: dataProductId
+          in: path
+          required: true
+          schema:
+            $ref: ./data-products.schemas.yaml#/components/schemas/DataProductId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./data-products.schemas.yaml#/components/schemas/DataProductStewardUpdateRequest
+      responses:
+        '200':
+          description: Steward updated
+          content:
+            application/json:
+              schema:
+                $ref: ./data-products.schemas.yaml#/components/schemas/DataProductResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/data-products/{dataProductId}/silos:
+    get:
+      operationId: listDataProductSilos
+      tags: [DataProducts]
+      summary: List silo systems feeding a data product
+      parameters:
+        - name: dataProductId
+          in: path
+          required: true
+          schema:
+            $ref: ./data-products.schemas.yaml#/components/schemas/DataProductId
+      responses:
+        '200':
+          description: Silo systems
+          content:
+            application/json:
+              schema:
+                $ref: ./data-products.schemas.yaml#/components/schemas/SiloSystemListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

@@ -1,0 +1,49 @@
+openapi: 3.1.0
+info:
+  title: Lineage API
+  version: 0.1.0
+  description: |
+    Exportable lineage and quality evidence graphs scoped to stewarded
+    data products.
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: lin
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: Lineage
+    description: Lineage graphs
+paths:
+  /v1/lineage/{dataProductId}:
+    get:
+      operationId: getLineage
+      tags: [Lineage]
+      summary: Get lineage graph for a data product
+      parameters:
+        - name: dataProductId
+          in: path
+          required: true
+          schema:
+            $ref: ./lineage.schemas.yaml#/components/schemas/DataProductId
+      responses:
+        '200':
+          description: Lineage graph
+          content:
+            application/json:
+              schema:
+                $ref: ./lineage.schemas.yaml#/components/schemas/LineageGraphResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

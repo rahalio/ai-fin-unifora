@@ -1,0 +1,635 @@
+import { makeApi, Zodios, type ZodiosOptions } from '@zodios/core';
+import { z } from 'zod';
+
+const createDataProduct_Body = z
+  .object({
+    name: z.string().min(1).max(200),
+    stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+    description: z.string().optional(),
+    piiClassification: z.string().optional(),
+  })
+  .passthrough();
+const Problem = z
+  .object({
+    type: z.string().url(),
+    title: z.string(),
+    status: z.number().int(),
+    detail: z.string(),
+    instance: z.string().url(),
+    code: z.string(),
+  })
+  .partial()
+  .passthrough();
+const DataProductId = z.string();
+const UserId = z.string();
+const QualityStatus = z.enum(['green', 'amber', 'red']);
+const DataProduct = z
+  .object({
+    dataProductId: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+    name: z.string().min(1).max(200),
+    description: z.string().optional(),
+    stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+    qualityStatus: z.enum(['green', 'amber', 'red']),
+    siloSystemCount: z.number().int().gte(0),
+    piiClassification: z.string().optional(),
+    createdAt: z.string().datetime({ offset: true }),
+    updatedAt: z.string().datetime({ offset: true }),
+  })
+  .passthrough();
+const DataProductListData = z
+  .object({
+    items: z.array(
+      z
+        .object({
+          dataProductId: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+          name: z.string().min(1).max(200),
+          description: z.string().optional(),
+          stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+          qualityStatus: z.enum(['green', 'amber', 'red']),
+          siloSystemCount: z.number().int().gte(0),
+          piiClassification: z.string().optional(),
+          createdAt: z.string().datetime({ offset: true }),
+          updatedAt: z.string().datetime({ offset: true }),
+        })
+        .passthrough()
+    ),
+    nextCursor: z.string().optional(),
+  })
+  .passthrough();
+const ResponseMeta = z
+  .object({
+    requestId: z.string().uuid(),
+    correlationId: z.string(),
+    generatedAt: z.string().datetime({ offset: true }),
+  })
+  .partial()
+  .passthrough();
+const DataProductListResponse = z
+  .object({
+    data: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              dataProductId: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+              name: z.string().min(1).max(200),
+              description: z.string().optional(),
+              stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+              qualityStatus: z.enum(['green', 'amber', 'red']),
+              siloSystemCount: z.number().int().gte(0),
+              piiClassification: z.string().optional(),
+              createdAt: z.string().datetime({ offset: true }),
+              updatedAt: z.string().datetime({ offset: true }),
+            })
+            .passthrough()
+        ),
+        nextCursor: z.string().optional(),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const DataProductCreateRequest = z
+  .object({
+    name: z.string().min(1).max(200),
+    stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+    description: z.string().optional(),
+    piiClassification: z.string().optional(),
+  })
+  .passthrough();
+const DataProductResponse = z
+  .object({
+    data: z
+      .object({
+        dataProductId: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+        name: z.string().min(1).max(200),
+        description: z.string().optional(),
+        stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+        qualityStatus: z.enum(['green', 'amber', 'red']),
+        siloSystemCount: z.number().int().gte(0),
+        piiClassification: z.string().optional(),
+        createdAt: z.string().datetime({ offset: true }),
+        updatedAt: z.string().datetime({ offset: true }),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const DataProductStewardUpdateRequest = z
+  .object({ stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/) })
+  .passthrough();
+const SiloSystemId = z.string();
+const SiloSystem = z
+  .object({
+    siloSystemId: z.string().regex(/^slo_[0-9A-HJKMNP-TV-Z]{26}$/),
+    name: z.string(),
+    lob: z.string().optional(),
+    databaseCount: z.number().int().gte(0).optional(),
+    removalPlanStatus: z
+      .enum(['planned', 'inProgress', 'removed', 'blocked'])
+      .optional(),
+  })
+  .passthrough();
+const SiloSystemListData = z
+  .object({
+    items: z.array(
+      z
+        .object({
+          siloSystemId: z.string().regex(/^slo_[0-9A-HJKMNP-TV-Z]{26}$/),
+          name: z.string(),
+          lob: z.string().optional(),
+          databaseCount: z.number().int().gte(0).optional(),
+          removalPlanStatus: z
+            .enum(['planned', 'inProgress', 'removed', 'blocked'])
+            .optional(),
+        })
+        .passthrough()
+    ),
+  })
+  .passthrough();
+const SiloSystemListResponse = z
+  .object({
+    data: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              siloSystemId: z.string().regex(/^slo_[0-9A-HJKMNP-TV-Z]{26}$/),
+              name: z.string(),
+              lob: z.string().optional(),
+              databaseCount: z.number().int().gte(0).optional(),
+              removalPlanStatus: z
+                .enum(['planned', 'inProgress', 'removed', 'blocked'])
+                .optional(),
+            })
+            .passthrough()
+        ),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+
+export const schemas: any = {
+  createDataProduct_Body,
+  Problem,
+  DataProductId,
+  UserId,
+  QualityStatus,
+  DataProduct,
+  DataProductListData,
+  ResponseMeta,
+  DataProductListResponse,
+  DataProductCreateRequest,
+  DataProductResponse,
+  DataProductStewardUpdateRequest,
+  SiloSystemId,
+  SiloSystem,
+  SiloSystemListData,
+  SiloSystemListResponse,
+};
+
+const endpoints = makeApi([
+  {
+    method: 'get',
+    path: '/v1/data-products',
+    alias: 'listDataProducts',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'cursor',
+        type: 'Query',
+        schema: z.string().optional(),
+      },
+      {
+        name: 'limit',
+        type: 'Query',
+        schema: z.number().int().gte(1).lte(200).optional().default(50),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            items: z.array(
+              z
+                .object({
+                  dataProductId: z
+                    .string()
+                    .regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+                  name: z.string().min(1).max(200),
+                  description: z.string().optional(),
+                  stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+                  qualityStatus: z.enum(['green', 'amber', 'red']),
+                  siloSystemCount: z.number().int().gte(0),
+                  piiClassification: z.string().optional(),
+                  createdAt: z.string().datetime({ offset: true }),
+                  updatedAt: z.string().datetime({ offset: true }),
+                })
+                .passthrough()
+            ),
+            nextCursor: z.string().optional(),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'post',
+    path: '/v1/data-products',
+    alias: 'createDataProduct',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: createDataProduct_Body,
+      },
+      {
+        name: 'Idempotency-Key',
+        type: 'Header',
+        schema: z.string().min(1).max(128),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            dataProductId: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            name: z.string().min(1).max(200),
+            description: z.string().optional(),
+            stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            qualityStatus: z.enum(['green', 'amber', 'red']),
+            siloSystemCount: z.number().int().gte(0),
+            piiClassification: z.string().optional(),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 409,
+        description: `Idempotency key reuse with different body, or state conflict`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/data-products/:dataProductId',
+    alias: 'getDataProduct',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'dataProductId',
+        type: 'Path',
+        schema: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            dataProductId: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            name: z.string().min(1).max(200),
+            description: z.string().optional(),
+            stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            qualityStatus: z.enum(['green', 'amber', 'red']),
+            siloSystemCount: z.number().int().gte(0),
+            piiClassification: z.string().optional(),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'patch',
+    path: '/v1/data-products/:dataProductId',
+    alias: 'updateDataProductSteward',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: z
+          .object({
+            stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+          })
+          .passthrough(),
+      },
+      {
+        name: 'dataProductId',
+        type: 'Path',
+        schema: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+      },
+      {
+        name: 'Idempotency-Key',
+        type: 'Header',
+        schema: z.string().min(1).max(128),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            dataProductId: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            name: z.string().min(1).max(200),
+            description: z.string().optional(),
+            stewardId: z.string().regex(/^usr_[0-9A-HJKMNP-TV-Z]{26}$/),
+            qualityStatus: z.enum(['green', 'amber', 'red']),
+            siloSystemCount: z.number().int().gte(0),
+            piiClassification: z.string().optional(),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/data-products/:dataProductId/silos',
+    alias: 'listDataProductSilos',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'dataProductId',
+        type: 'Path',
+        schema: z.string().regex(/^dpr_[0-9A-HJKMNP-TV-Z]{26}$/),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            items: z.array(
+              z
+                .object({
+                  siloSystemId: z
+                    .string()
+                    .regex(/^slo_[0-9A-HJKMNP-TV-Z]{26}$/),
+                  name: z.string(),
+                  lob: z.string().optional(),
+                  databaseCount: z.number().int().gte(0).optional(),
+                  removalPlanStatus: z
+                    .enum(['planned', 'inProgress', 'removed', 'blocked'])
+                    .optional(),
+                })
+                .passthrough()
+            ),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+]);
+
+export const api: any = new Zodios(
+  'https://api.ddd-codegen-starter.local/v1',
+  endpoints
+);
+
+export function createApiClient(baseUrl: string, options?: ZodiosOptions): any {
+  return new Zodios(baseUrl, endpoints, options);
+}

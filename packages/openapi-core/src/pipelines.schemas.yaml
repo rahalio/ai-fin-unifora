@@ -1,0 +1,123 @@
+openapi: 3.1.0
+info:
+  title: Pipelines schemas
+  version: 0.1.0
+  description: Model pipeline ops registry with SLA events and breach tracking.
+paths: {}
+components:
+  schemas:
+    PipelineId:
+      type: string
+      pattern: '^pip_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed pipeline identifier.
+
+    UseCaseId:
+      type: string
+      pattern: '^ucs_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed AI use-case identifier.
+
+    PipelineStatus:
+      type: string
+      enum: [registered, production, breached, retired]
+
+    PipelineSLAEventType:
+      type: string
+      enum: [ok, breach, patched]
+
+    Pipeline:
+      type: object
+      required:
+        - pipelineId
+        - name
+        - owner
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        pipelineId:
+          $ref: '#/components/schemas/PipelineId'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        owner:
+          type: string
+          description: Named pipeline owner (team or individual).
+        useCaseId:
+          $ref: '#/components/schemas/UseCaseId'
+        status:
+          $ref: '#/components/schemas/PipelineStatus'
+        sla:
+          type: string
+          description: Human-readable SLA description (e.g. patch within 7 days).
+        lastSlaEventAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PipelineCreateRequest:
+      type: object
+      required:
+        - name
+        - owner
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        owner:
+          type: string
+        useCaseId:
+          $ref: '#/components/schemas/UseCaseId'
+        sla:
+          type: string
+
+    PipelineSLAEventRequest:
+      type: object
+      required:
+        - eventType
+      properties:
+        eventType:
+          $ref: '#/components/schemas/PipelineSLAEventType'
+        detail:
+          type: string
+        observedAt:
+          type: string
+          format: date-time
+
+    PipelineListData:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pipeline'
+        nextCursor:
+          type: string
+
+    PipelineResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Pipeline'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    PipelineListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/PipelineListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

@@ -1,0 +1,68 @@
+openapi: 3.1.0
+info:
+  title: Security Attestations API
+  version: 0.1.0
+  description: |
+    Analytics platform resiliency attestation — cloud data-protection
+    ownership and controls checklist for readiness scoring (BR-8).
+  license:
+    name: Proprietary
+    url: https://unifora.local/license
+  x-domain: sec
+servers:
+  - url: https://api.unifora.local
+    description: Local / starter API
+security:
+  - bearerAuth: []
+tags:
+  - name: SecurityAttestations
+    description: Platform security attestation
+paths:
+  /v1/security/attestation:
+    get:
+      operationId: getPlatformAttestation
+      tags: [SecurityAttestations]
+      summary: Get current platform attestation
+      responses:
+        '200':
+          description: Current attestation
+          content:
+            application/json:
+              schema:
+                $ref: ./security-attestations.schemas.yaml#/components/schemas/PlatformAttestationResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    put:
+      operationId: upsertPlatformAttestation
+      tags: [SecurityAttestations]
+      summary: Upsert platform security attestation
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./security-attestations.schemas.yaml#/components/schemas/PlatformAttestationUpsertRequest
+      responses:
+        '200':
+          description: Attestation updated
+          content:
+            application/json:
+              schema:
+                $ref: ./security-attestations.schemas.yaml#/components/schemas/PlatformAttestationResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

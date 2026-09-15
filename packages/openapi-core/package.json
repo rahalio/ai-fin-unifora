@@ -1,0 +1,18 @@
+{
+  "name": "@unifora/openapi-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenAPI contracts for Unifora (common + product domains)",
+  "scripts": {
+    "lint:domains": "redocly lint",
+    "bundle:domains": "mkdir -p src/.bundled && redocly bundle identity --output src/.bundled/identity.openapi.yaml && redocly bundle identity --output src/.bundled/identity.json && redocly bundle use-cases --output src/.bundled/use-cases.openapi.yaml && redocly bundle use-cases --output src/.bundled/use-cases.json && redocly bundle data-products --output src/.bundled/data-products.openapi.yaml && redocly bundle data-products --output src/.bundled/data-products.json && redocly bundle shares --output src/.bundled/shares.openapi.yaml && redocly bundle shares --output src/.bundled/shares.json && redocly bundle readiness --output src/.bundled/readiness.openapi.yaml && redocly bundle readiness --output src/.bundled/readiness.json && redocly bundle pipelines --output src/.bundled/pipelines.openapi.yaml && redocly bundle pipelines --output src/.bundled/pipelines.json && redocly bundle escalations --output src/.bundled/escalations.openapi.yaml && redocly bundle escalations --output src/.bundled/escalations.json && redocly bundle lineage --output src/.bundled/lineage.openapi.yaml && redocly bundle lineage --output src/.bundled/lineage.json && redocly bundle audits --output src/.bundled/audits.openapi.yaml && redocly bundle audits --output src/.bundled/audits.json && redocly bundle capacity --output src/.bundled/capacity.openapi.yaml && redocly bundle capacity --output src/.bundled/capacity.json && redocly bundle security-attestations --output src/.bundled/security-attestations.openapi.yaml && redocly bundle security-attestations --output src/.bundled/security-attestations.json",
+    "lint": "pnpm run lint:domains",
+    "bundle": "pnpm run bundle:domains"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^1.34.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

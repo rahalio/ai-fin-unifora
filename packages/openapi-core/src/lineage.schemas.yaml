@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: Lineage schemas
+  version: 0.1.0
+  description: Lineage graphs for stewarded data products.
+paths: {}
+components:
+  schemas:
+    DataProductId:
+      type: string
+      pattern: '^dpr_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed stewarded data-product identifier.
+
+    LineageNodeType:
+      type: string
+      enum: [source, transform, product, consumer]
+
+    LineageNode:
+      type: object
+      required:
+        - nodeId
+        - label
+        - nodeType
+      properties:
+        nodeId:
+          type: string
+        label:
+          type: string
+        nodeType:
+          $ref: '#/components/schemas/LineageNodeType'
+        system:
+          type: string
+          description: Upstream system or catalogue reference.
+
+    LineageEdge:
+      type: object
+      required:
+        - fromNodeId
+        - toNodeId
+      properties:
+        fromNodeId:
+          type: string
+        toNodeId:
+          type: string
+        relationship:
+          type: string
+          enum: [feeds, derives, consumes]
+        qualityRuleId:
+          type: string
+
+    LineageGraph:
+      type: object
+      required:
+        - dataProductId
+        - nodes
+        - edges
+      properties:
+        dataProductId:
+          $ref: '#/components/schemas/DataProductId'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineageNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineageEdge'
+        coveragePercent:
+          type: number
+          minimum: 0
+          maximum: 100
+        generatedAt:
+          type: string
+          format: date-time
+
+    LineageGraphResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/LineageGraph'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
